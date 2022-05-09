@@ -1,18 +1,25 @@
-import { Routes } from "express"
+import { Router } from "express"
 import { 
     addTemplateDoc, 
     getAllTemplateDocs, 
     getTemplateById,
     updateTemplateDoc,
-    deleteTemplateDoc
-} from "./src/services/template.services.js";
+    deleteTemplateDoc,
+    eraseTemplateDoc
+} from "../services/template.services.js";
 
-export const templateRoutes = Routes();
+export const templateRoutes = Router();
 
 // - API ENDPOINTS - API ROUTES
 
-app.post('/', addTemplateDoc);
-app.get('/', getAllTemplateDocs);
-app.get('/:templateDocId', getTemplateById);
-app.patch('/:templateDocId', updateTemplateDoc);
-app.delete('/:templateDocId', deleteTemplateDoc);
+templateRoutes.post('/', addTemplateDoc);
+
+templateRoutes.get('/', getAllTemplateDocs);
+
+templateRoutes.get('/:templateDocId', getTemplateById);
+
+templateRoutes.patch('/:templateDocId', updateTemplateDoc);
+
+templateRoutes.delete('/:templateDocId', deleteTemplateDoc);
+
+templateRoutes.delete('/erase/:templateDocId', eraseTemplateDoc);

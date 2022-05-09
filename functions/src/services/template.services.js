@@ -3,20 +3,19 @@ import connectDb from '../gateway/template.gateway.js';
 // CREATE
 
 export const addTemplateDoc = async (req, res) => {
-    // check req is valid
-    if(!req.body || !req.body.name || !req.body.address){  // check if there is a body with data in the request parameter 
-        res.status(401).send('Invalid request');           // or if the name in the body is filled or the address is filled
+
+    if(!req.body || !req.body.firstName || !req.body.email){
+        res.status(401).send('Invalid request for creating Template Doc');
         return;
     }
-    // connect to DB
+
     const db = connectDb();
 
-    // // prepare the data in case of data validation
     const newTemplateDoc = {
         firstName: req.body.firstName,
         lastName: req.body.lastName,
         email: req.body.email,
-        phone: req.body.phone || 555-555-5555,
+        phone: req.body.phone || "555-555-5555",
         zipCode: req.body.zipCode || '33160',
     }
 
@@ -31,7 +30,9 @@ export const addTemplateDoc = async (req, res) => {
 // READ
 
 export const getAllTemplateDocs = async (req, res) => {
+
     const db = connectDb();
+
     try {
         const snapshot = await db.collection('templates').get();
         const templatesArray = snapshot.docs.map( doc => {
@@ -45,48 +46,50 @@ export const getAllTemplateDocs = async (req, res) => {
     }
 }
 
-export function getTemplateById(req, res){
-    const { templateId } = req.params
-    if(!templateId){
-        res.status(401).send('Invalid request');
+export const getTemplateById = async (req, res) => {
+
+    const { templateDocId } = req.params
+
+    if(!templateDocId){
+        res.status(401).send('Invalid request for get Template by ID');
         return;
     }
+
     const db = connectDb();
-    db.collection('templates').doc(templateId).get()
+
     try {
-        doc => {
-            let templateDoc = doc.data();
-            templateDoc.id = doc.id;
-            res.send(templateDoc)
-        }
+        const templateDoc = await db.collection('templates').where('__name__', '==' ,templateDocId).get();
+        const templateData = templateDoc.docs.map((doc) => doc.data());
+        res.send(templateData);
     } catch (err) {
         res.status(500).send(err);
     }
 }
 
+
 // UPDATE
 
 function validateUpdateParams (req){
-    if(!req.params.restaurantId || !req.body){  // check if there is a body with data in the request parameter 
+    if(!req.params.templateDocId || !req.body){
         return -1
     }
     return 0
 }
 
 export function updateTemplateDoc(req, res){
-    const { templateId } = req.params
-    // validate req params
+    const { templateDocId } = req.params
+
     if(validateUpdateParams(req) < 0){
-        res.status(401).send('Invalid request for restaurant: ' + templateId);
+        res.status(401).send('Invalid request for update: ' + templateDocId);
         return;
     }
-    // connect to DB
+
     const db = connectDb();
-    // update the data in the collection
-    db.collection('templates').doc(templateId).update(req.body)
+
+    db.collection('templates').doc(templateDocId).update(req.body)
         try {
-            // return success
-            res.status(201).send('Template Updated ' + templateId)
+
+            res.status(201).send('Template Updated ' + templateDocId)
         } catch (err){
             res.status(500).send(err)
         }
@@ -94,27 +97,20 @@ export function updateTemplateDoc(req, res){
 
 // DELETE
 
-function validateDeleteParams (req){
-    if(!req.params.restaurantId){  // check if there is a body with data in the request parameter 
-        return -1
-    }
-    return 0
-}
-
 // HARD DELETE
-export function deleteTemplateDoc(req, res){
-    const { templateId } = req.params
+export function eraseTemplateDoc(req, res){
+    const { templateDocId } = req.params
     // validate req params
-    if(validateDeleteParams(req) < 0){
-        res.status(401).send('Invalid request for template: ' + templateId);
+    if(!templateDocId){
+        res.status(401).send('Invalid request for erase: ' + templateDocId);
         return;
     }
     // connect to DB
     const db = connectDb();
     // hard delete data
-    db.collection('templates').doc(templateId).delete()
+    db.collection('templates').doc(templateDocId).delete()
     try{
-        res.status(201).send('Template deleted: ' + templateId)
+        res.status(201).send('Template erased: ' + templateDocId)
     } catch (err) {
         res.status(500).send(err)
     }
@@ -122,18 +118,18 @@ export function deleteTemplateDoc(req, res){
 
 // SOFT DELETE
 export function deleteTemplateDoc(req, res){
-    const { templateId } = req.params
+    const { templateDocId } = req.params
     // validate req params
-    if(validateDeleteParams(req) < 0){
-        res.status(401).send('Invalid request for template: ' + templateId);
+    if(!templateDocId){
+        res.status(401).send('Invalid request for delete: ' + templateDocId);
         return;
     }
     // connect to DB
     const db = connectDb();
     // hard delete data
-    db.collection('templates').doc(templateId).update({deletedAt: new Date()})
+    db.collection('templates').doc(templateDocId).update({deletedAt: new Date()})
     try{
-        res.status(201).send('Template deleted: ' + templateId)
+        res.status(201).send('Template deleted: ' + templateDocId)
     } catch (err) {
         res.status(500).send(err)
     }
